@@ -1,0 +1,24 @@
+# App Installation Blocklist
+# 
+# List category names (without .winget extension) to skip during installation.
+# Lines starting with '#' are comments and will be ignored.
+# Empty lines are also ignored.
+#
+# Available categories:
+#   - development
+#   - communication
+#   - media
+#   - productivity
+#
+# Example usage:
+#   communication    # Skip Discord, WeChat, Zoom
+#   media            # Skip VLC, Steam (Spotify requires separate install)
+#
+# Note: To block individual apps within a category, remove them from the 
+# category's .winget file instead of blocking the entire category.
+
+# Uncomment categories below to block them:
+# communication
+# media
+# productivity
+

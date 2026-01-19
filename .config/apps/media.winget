@@ -10,14 +10,17 @@ properties:
       settings:
         id: VideoLAN.VLC
         source: winget
+        useLatest: true
 
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: Spotify
-      directives:
-        description: Install Spotify
-      settings:
-        id: Spotify.Spotify
-        source: winget
+    # Spotify requires manual installation due to installer restrictions.
+    # See .config/apps/uninstallable.txt for installation instructions.
+    # - resource: Microsoft.WinGet.DSC/WinGetPackage
+    #   id: Spotify
+    #   directives:
+    #     description: Install Spotify
+    #   settings:
+    #     id: Spotify.Spotify
+    #     source: winget
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Steam
@@ -26,3 +29,4 @@ properties:
       settings:
         id: Valve.Steam
         source: winget
+        useLatest: true

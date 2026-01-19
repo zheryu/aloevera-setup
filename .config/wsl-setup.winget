@@ -10,79 +10,8 @@ properties:
       settings:
         id: Canonical.Ubuntu
         source: winget
+        useLatest: true
 
-    - resource: PSDSC/Script
-      id: WSLConfig
-      dependsOn: [Ubuntu]
-      directives:
-        description: Configure WSL settings (disable automounting)
-      settings:
-        GetScript: |
-          return @{ Result = "Checking WSL Config" }
-        TestScript: |
-          # TODO: Distribution name may be "Ubuntu-22.04" instead of "Ubuntu" - verify with wsl --list
-          $val = wsl -d Ubuntu cat /etc/wsl.conf 2>$null
-          if (-not $val) { return $false }
-          return $val -match "enabled\s*=\s*false"
-        SetScript: |
-          # Copy template wsl.conf to WSL distro
-          $sourceConf = "C:/projects/aloevera-setup/modules/wsl/wsl.conf"
-          if (Test-Path $sourceConf) {
-            $content = Get-Content $sourceConf -Raw
-            $content = $content -replace "`r`n", "`n"
-            wsl -d Ubuntu sh -c "echo '$content' > /etc/wsl.conf"
-          } else {
-            # Fallback if template doesn't exist
-            $content = "[automount]`nenabled=false"
-            wsl -d Ubuntu sh -c "echo '$content' > /etc/wsl.conf"
-          }
-          # Restart WSL to apply changes
-          wsl --shutdown
-          Start-Sleep -Seconds 3
-
-    - resource: PSDSC/Script
-      id: WSLFstab
-      dependsOn: [Ubuntu]
-      directives:
-        description: Configure WSL fstab to allowlist only built-in drives
-      settings:
-        GetScript: |
-          return @{ Result = "Checking WSL fstab" }
-        TestScript: |
-          # TODO: Distribution name may be "Ubuntu-22.04" instead of "Ubuntu" - verify with wsl --list
-          # Check if fstab exists with correct drives
-          $fstab = wsl -d Ubuntu cat /etc/fstab 2>$null
-          if (-not $fstab) { return $false }
-          
-          # Get current local fixed drives
-          $drives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 } | Select-Object -ExpandProperty DeviceID
-          
-          # Verify all drives are in fstab
-          foreach ($drive in $drives) {
-            $driveLetter = $drive.TrimEnd(':').ToLower()
-            if ($fstab -notmatch "/mnt/$driveLetter") {
-              return $false
-            }
-          }
-          return $true
-        SetScript: |
-          # Get list of local fixed drives (built-in drives only)
-          $drives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 } | Select-Object -ExpandProperty DeviceID
-          
-          # Build fstab content
-          $fstabLines = @("# <device>  <mount point>  <type>  <options>  <dump>  <pass>")
-          foreach ($drive in $drives) {
-            $driveLetter = $drive.TrimEnd(':')
-            $mountPoint = "/mnt/$($driveLetter.ToLower())"
-            $fstabLines += "$($driveLetter):          $mountPoint        drvfs   defaults   0       0"
-          }
-          $fstabContent = $fstabLines -join "`n"
-          
-          # Write to WSL
-          $escapedContent = $fstabContent -replace "'", "'\\''"
-          wsl -d Ubuntu sh -c "echo '$escapedContent' | sudo tee /etc/fstab > /dev/null"
-          
-          Write-Host "Created /etc/fstab with drives: $($drives -join ', ')"
 
     # # --- VS Code Server Initialization ---
     # - resource: PSDSC/Script
