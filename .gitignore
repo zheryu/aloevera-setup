@@ -1,0 +1,30 @@
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Logs
+logs/
+*.log
+
+# PowerShell
+*.ps1xml
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Environment specific
+.env
+.env.local
+
+# User specific
+user-config.ps1

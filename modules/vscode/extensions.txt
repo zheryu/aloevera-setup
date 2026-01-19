@@ -1,0 +1,60 @@
+# VS Code Extensions for WSL
+# ===========================
+# This file contains a list of VS Code extensions that will be automatically
+# installed inside your WSL Ubuntu distribution during the bootstrap process.
+#
+# Format:
+#   - One extension ID per line (format: publisher.extension-name)
+#   - Lines starting with # are comments and will be ignored
+#   - Empty lines are ignored
+#
+# How to find extension IDs:
+#   1. Browse: https://marketplace.visualstudio.com/vscode
+#   2. CLI: code --list-extensions (shows currently installed extensions)
+#   3. In VS Code: Right-click extension → Copy Extension ID
+#
+# The bootstrap script will check if these extensions are installed and only
+# install missing ones, making the process idempotent.
+#
+# ===========================
+
+# Flutter & Dart Development
+alexisvt.flutter-snippets
+dart-code.dart-code
+dart-code.flutter
+
+# GitHub Copilot
+github.copilot
+github.copilot-chat
+
+# Container & Docker Development
+ms-azuretools.vscode-containers
+ms-azuretools.vscode-docker
+
+# Python Development
+ms-python.debugpy
+ms-python.python
+ms-python.vscode-pylance
+
+# Jupyter Notebooks
+ms-toolsai.jupyter
+ms-toolsai.jupyter-keymap
+ms-toolsai.jupyter-renderers
+ms-toolsai.vscode-jupyter-cell-tags
+ms-toolsai.vscode-jupyter-slideshow
+
+# Remote Development
+ms-vscode-remote.remote-containers
+ms-vscode-remote.remote-wsl
+
+# Collaboration
+ms-vsliveshare.vsliveshare
+
+# Java Development
+redhat.java
+vscjava.vscode-gradle
+vscjava.vscode-java-debug
+vscjava.vscode-java-dependency
+vscjava.vscode-java-pack
+vscjava.vscode-java-test
+vscjava.vscode-maven

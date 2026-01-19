@@ -1,0 +1,165 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    # --- WSL Layer ---
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Ubuntu
+      directives:
+        description: Install Ubuntu Distro
+      settings:
+        id: Canonical.Ubuntu
+        source: winget
+
+    - resource: PSDSC/Script
+      id: WSLConfig
+      dependsOn: [Ubuntu]
+      directives:
+        description: Configure WSL settings (disable automounting)
+      settings:
+        GetScript: |
+          return @{ Result = "Checking WSL Config" }
+        TestScript: |
+          # TODO: Distribution name may be "Ubuntu-22.04" instead of "Ubuntu" - verify with wsl --list
+          $val = wsl -d Ubuntu cat /etc/wsl.conf 2>$null
+          if (-not $val) { return $false }
+          return $val -match "enabled\s*=\s*false"
+        SetScript: |
+          # Copy template wsl.conf to WSL distro
+          $sourceConf = "C:/projects/aloevera-setup/modules/wsl/wsl.conf"
+          if (Test-Path $sourceConf) {
+            $content = Get-Content $sourceConf -Raw
+            $content = $content -replace "`r`n", "`n"
+            wsl -d Ubuntu sh -c "echo '$content' > /etc/wsl.conf"
+          } else {
+            # Fallback if template doesn't exist
+            $content = "[automount]`nenabled=false"
+            wsl -d Ubuntu sh -c "echo '$content' > /etc/wsl.conf"
+          }
+          # Restart WSL to apply changes
+          wsl --shutdown
+          Start-Sleep -Seconds 3
+
+    - resource: PSDSC/Script
+      id: WSLFstab
+      dependsOn: [Ubuntu]
+      directives:
+        description: Configure WSL fstab to allowlist only built-in drives
+      settings:
+        GetScript: |
+          return @{ Result = "Checking WSL fstab" }
+        TestScript: |
+          # TODO: Distribution name may be "Ubuntu-22.04" instead of "Ubuntu" - verify with wsl --list
+          # Check if fstab exists with correct drives
+          $fstab = wsl -d Ubuntu cat /etc/fstab 2>$null
+          if (-not $fstab) { return $false }
+          
+          # Get current local fixed drives
+          $drives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 } | Select-Object -ExpandProperty DeviceID
+          
+          # Verify all drives are in fstab
+          foreach ($drive in $drives) {
+            $driveLetter = $drive.TrimEnd(':').ToLower()
+            if ($fstab -notmatch "/mnt/$driveLetter") {
+              return $false
+            }
+          }
+          return $true
+        SetScript: |
+          # Get list of local fixed drives (built-in drives only)
+          $drives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 } | Select-Object -ExpandProperty DeviceID
+          
+          # Build fstab content
+          $fstabLines = @("# <device>  <mount point>  <type>  <options>  <dump>  <pass>")
+          foreach ($drive in $drives) {
+            $driveLetter = $drive.TrimEnd(':')
+            $mountPoint = "/mnt/$($driveLetter.ToLower())"
+            $fstabLines += "$($driveLetter):          $mountPoint        drvfs   defaults   0       0"
+          }
+          $fstabContent = $fstabLines -join "`n"
+          
+          # Write to WSL
+          $escapedContent = $fstabContent -replace "'", "'\\''"
+          wsl -d Ubuntu sh -c "echo '$escapedContent' | sudo tee /etc/fstab > /dev/null"
+          
+          Write-Host "Created /etc/fstab with drives: $($drives -join ', ')"
+
+    # # --- VS Code Server Initialization ---
+    # - resource: PSDSC/Script
+    #   id: VSCodeWSLServer
+    #   dependsOn: [VSCode, Ubuntu]
+    #   directives:
+    #     description: Initialize VS Code Server in WSL
+    #   settings:
+    #     GetScript: |
+    #       return @{ Result = "Checking WSL VS Code Server" }
+    #     TestScript: |
+    #       # TODO: Distribution name may be "Ubuntu-22.04" instead of "Ubuntu" - verify with wsl --list
+    #       # Ensure code command is available in WSL
+    #       $result = wsl -d Ubuntu which code 2>$null
+    #       return $result -ne $null -and $result -ne ""
+    #     SetScript: |
+    #       # Trigger the VS Code server download and initialization
+    #       Write-Host "Initializing VS Code server in WSL..."
+    #       wsl -d Ubuntu -- code --version
+    #       Start-Sleep -Seconds 5
+
+    # # --- VS Code Extensions (WSL Side) ---
+    # - resource: PSDSC/Script
+    #   id: VSCodeExtensions
+    #   dependsOn: [VSCodeWSLServer]
+    #   directives:
+    #     description: Install VS Code extensions inside WSL
+    #   settings:
+    #     GetScript: |
+    #       return @{ Result = "Checking WSL Extensions" }
+    #     TestScript: |
+    #       # TODO: Distribution name may be "Ubuntu-22.04" instead of "Ubuntu" - verify with wsl --list
+    #       $installed = wsl -d Ubuntu -- code --list-extensions 2>$null
+    #       if (-not $installed) { return $false }
+          
+    #       # Read extensions from file
+    #       $extFile = "C:/projects/aloevera-setup/modules/vscode/extensions.txt"
+    #       if (Test-Path $extFile) {
+    #         $required = Get-Content $extFile | Where-Object { $_ -and $_ -notmatch "^\s*#" }
+    #         foreach ($ext in $required) {
+    #           if ($installed -notcontains $ext.Trim()) {
+    #             return $false
+    #           }
+    #         }
+    #       }
+    #       return $true
+    #     SetScript: |
+    #       # Install extensions from list
+    #       $extFile = "C:/projects/aloevera-setup/modules/vscode/extensions.txt"
+    #       if (Test-Path $extFile) {
+    #         $extensions = Get-Content $extFile | Where-Object { $_ -and $_ -notmatch "^\s*#" }
+    #         foreach ($ext in $extensions) {
+    #           Write-Host "Installing extension: $ext"
+    #           wsl -d Ubuntu -- code --install-extension $ext.Trim()
+    #         }
+    #       }
+
+    # --- Git Configuration ---
+    # - resource: PSDSC/Script
+    #   id: GitConfig
+    #   dependsOn: [Git]
+    #   directives:
+    #     description: Configure Git with user information
+    #   settings:
+    #     GetScript: |
+    #       return @{ Result = "Checking Git Config" }
+    #     TestScript: |
+    #       $name = git config --global user.name
+    #       $email = git config --global user.email
+    #       return ($name -ne $null -and $email -ne $null)
+    #     SetScript: |
+    #       # Use Windows username as default
+    #       $userName = $env:USERNAME
+    #       $userEmail = "$userName@localhost"
+          
+    #       git config --global user.name $userName
+    #       git config --global user.email $userEmail
+          
+    #       Write-Host "Git configured with user.name=$userName and user.email=$userEmail"
+    #       Write-Host "Update these values manually if needed with 'git config --global user.name/email'"

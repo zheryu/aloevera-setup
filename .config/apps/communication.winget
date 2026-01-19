@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    # --- Communication Tools ---
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: WeChat
+      directives:
+        description: Install WeChat
+      settings:
+        id: Tencent.WeChat
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Discord
+      directives:
+        description: Install Discord
+      settings:
+        id: Discord.Discord
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Zoom
+      directives:
+        description: Install Zoom
+      settings:
+        id: Zoom.Zoom.EXE
+        source: winget
