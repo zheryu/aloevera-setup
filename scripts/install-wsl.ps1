@@ -13,6 +13,9 @@
 
 $ErrorActionPreference = "Stop"
 
+# Import common utilities
+. "$PSScriptRoot/Common.ps1"
+
 Write-Host "Checking WSL installation status..." -ForegroundColor Gray
 
 try {
@@ -75,11 +78,7 @@ try {
 
 # Check if reboot is required
 if ($rebootRequired) {
-    Write-Host ""
-    Write-Host "========================================" -ForegroundColor Yellow
-    Write-Host "  REBOOT REQUIRED" -ForegroundColor Yellow
-    Write-Host "========================================" -ForegroundColor Yellow
-    Write-Host ""
+    Write-WarningBanner "REBOOT REQUIRED"
     Write-Host "Windows features have been enabled, but a restart is required." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Please:" -ForegroundColor Yellow

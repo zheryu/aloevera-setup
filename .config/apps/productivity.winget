@@ -10,6 +10,7 @@ properties:
       settings:
         id: Google.Chrome
         source: winget
+        useLatest: true
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Obsidian
@@ -18,6 +19,7 @@ properties:
       settings:
         id: Obsidian.Obsidian
         source: winget
+        useLatest: true
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: WinRAR
@@ -26,3 +28,4 @@ properties:
       settings:
         id: RARLab.WinRAR
         source: winget
+        useLatest: true

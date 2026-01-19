@@ -87,8 +87,8 @@ C:/projects/aloevera-setup/
 
 **Media & Entertainment** (`.config/apps/media.winget`):
 - VLC Media Player
-- Spotify
 - Steam
+- Spotify (requires manual installation - see [Manual Installations](#manual-installations))
 
 **Productivity** (`.config/apps/productivity.winget`):
 - Google Chrome
@@ -156,6 +156,21 @@ Find extension IDs at https://marketplace.visualstudio.com/vscode or use `code -
 ### Configuring WSL
 
 Edit `modules/wsl/wsl.conf` with your desired WSL settings. Documentation: https://learn.microsoft.com/en-us/windows/wsl/wsl-config
+
+## Manual Installations
+
+Some applications cannot be installed via automated provisioning and require manual installation. After running [bootstrap.ps1](scripts/bootstrap.ps1), the script will display a list of these applications with download URLs.
+
+You can also view this list anytime by running:
+```powershell
+.\scripts\show-manual-installs.ps1
+```
+
+The list is maintained in [.config/apps/uninstallable.txt](.config/apps/uninstallable.txt). To add an app to this list:
+
+```
+AppName | https://download-url.com | Reason why automation isn't possible
+```
 
 ## Troubleshooting
 

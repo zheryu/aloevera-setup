@@ -10,14 +10,28 @@
     - WinGet configuration application
     - Complete logging and error handling
 
+.PARAMETER SkipApps
+    Skip application installation. Only sets up WSL and Ubuntu.
+
 .NOTES
     Run this script as Administrator on a fresh Windows 11 machine.
+
+.EXAMPLE
+    .\bootstrap.ps1
+    .\bootstrap.ps1 -SkipApps
 #>
+
+param(
+    [switch]$SkipApps
+)
 
 $ErrorActionPreference = "Stop"
 
+# Import common utilities
+. "$PSScriptRoot/Common.ps1"
+
 # Create logs directory if it doesn't exist
-$logDir = "C:/projects/aloevera-setup/logs"
+$logDir = "$PSScriptRoot/../logs"
 if (-not (Test-Path $logDir)) {
     New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 }
@@ -26,10 +40,7 @@ $logPath = "$logDir/bootstrap-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 Start-Transcript -Path $logPath -Append
 
 try {
-    Write-Host "========================================" -ForegroundColor Cyan
-    Write-Host "  WinGet DSC Machine Provisioning" -ForegroundColor Cyan
-    Write-Host "========================================" -ForegroundColor Cyan
-    Write-Host ""
+    Write-InfoBanner "WinGet DSC Machine Provisioning"
 
     # Validate prerequisites
     Write-Host "[Prerequisite Check]" -ForegroundColor Yellow
@@ -82,7 +93,7 @@ try {
     Write-Host "--- Stage 4: WSL Setup ---" -ForegroundColor Cyan
     Write-Host "Configuring WSL environment..." -ForegroundColor Gray
     
-    $wslConfigFile = "C:/projects/aloevera-setup/.config/wsl-setup.winget"
+    $wslConfigFile = "$PSScriptRoot/../.config/wsl-setup.winget"
     if (-not (Test-Path $wslConfigFile)) {
         throw "Configuration file not found: $wslConfigFile"
     }
@@ -91,32 +102,22 @@ try {
     Write-Host ""
 
     # Stage 5: Application Installation
-    Write-Host "--- Stage 5: Application Installation ---" -ForegroundColor Cyan
-    
-    $appConfigs = @(
-        "C:/projects/aloevera-setup/.config/apps/development.winget",
-        "C:/projects/aloevera-setup/.config/apps/communication.winget",
-        "C:/projects/aloevera-setup/.config/apps/media.winget",
-        "C:/projects/aloevera-setup/.config/apps/productivity.winget"
-    )
-    
-    foreach ($configFile in $appConfigs) {
-        if (-not (Test-Path $configFile)) {
-            Write-Warning "Configuration file not found: $configFile (skipping)"
-            continue
-        }
-        
-        $categoryName = (Split-Path $configFile -Leaf) -replace '\.winget$', ''
-        Write-Host "Installing $categoryName apps..." -ForegroundColor Gray
-        winget configure -f $configFile --accept-configuration-agreements
+    if ($SkipApps) {
+        Write-Host "--- Stage 5: Application Installation (SKIPPED) ---" -ForegroundColor Yellow
+        Write-Host "Run 'install-apps.ps1' later to install applications" -ForegroundColor Gray
+        Write-Host ""
+    } else {
+        Write-Host "--- Stage 5: Application Installation ---" -ForegroundColor Cyan
+        & "$PSScriptRoot/install-apps.ps1" -SkipPrompt
+        Write-Host ""
     }
+
+    # Show apps that require manual installation
+    & "$PSScriptRoot/show-manual-installs.ps1"
     Write-Host ""
 
     # Success summary
-    Write-Host "========================================" -ForegroundColor Green
-    Write-Host "  Provisioning Complete!" -ForegroundColor Green
-    Write-Host "========================================" -ForegroundColor Green
-    Write-Host ""
+    Write-SuccessBanner "Provisioning Complete!"
     Write-Host "Log file saved to: $logPath" -ForegroundColor Gray
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Yellow
@@ -127,11 +128,7 @@ try {
     Write-Host ""
 
 } catch {
-    Write-Host ""
-    Write-Host "========================================" -ForegroundColor Red
-    Write-Host "  Provisioning Failed!" -ForegroundColor Red
-    Write-Host "========================================" -ForegroundColor Red
-    Write-Host ""
+    Write-ErrorBanner "Provisioning Failed!"
     Write-Host "Error: $_" -ForegroundColor Red
     Write-Host ""
     Write-Host "Check the log file for details: $logPath" -ForegroundColor Gray

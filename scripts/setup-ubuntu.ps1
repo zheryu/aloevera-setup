@@ -11,6 +11,9 @@
 
 $ErrorActionPreference = "Stop"
 
+# Import common utilities
+. "$PSScriptRoot/Common.ps1"
+
 # Distribution configuration
 $distro = "Ubuntu"
 
@@ -167,11 +170,7 @@ try {
     Write-Warning "Could not set default user automatically. You may need to set it manually."
 }
 
-Write-Host ""
-Write-Host "========================================" -ForegroundColor Green
-Write-Host "  Ubuntu Setup Complete!" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
-Write-Host ""
+Write-SuccessBanner "Ubuntu Setup Complete!"
 Write-Host "Distribution: $distro" -ForegroundColor Gray
 Write-Host "Username: $user" -ForegroundColor Gray
 Write-Host ""

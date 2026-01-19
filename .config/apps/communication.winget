@@ -10,6 +10,7 @@ properties:
       settings:
         id: Tencent.WeChat
         source: winget
+        useLatest: true
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Discord
@@ -18,6 +19,7 @@ properties:
       settings:
         id: Discord.Discord
         source: winget
+        useLatest: true
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Zoom
@@ -26,3 +28,4 @@ properties:
       settings:
         id: Zoom.Zoom.EXE
         source: winget
+        useLatest: true

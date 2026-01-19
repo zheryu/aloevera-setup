@@ -1,0 +1,9 @@
+# Uninstallable Apps
+#
+# These apps cannot be installed via the automated provisioning process.
+# They require manual installation by the user.
+#
+# Format: AppName | Download URL | Reason
+# Lines starting with '#' are comments and will be ignored.
+
+Spotify | https://apps.microsoft.com/detail/9NCBCSZSJRSB?hl=en-us&gl=US&ocid=pdpshare | Cannot be installed from administrator context
