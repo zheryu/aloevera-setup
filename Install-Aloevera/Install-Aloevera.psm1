@@ -24,9 +24,7 @@ New-Alias -Name 'Aloe' -Value 'Install-Aloevera' -Force
 
 # Export module members
 Export-ModuleMember -Function @(
-    'Install-Aloevera',
-    'Install-AloeVeraApps',
-    'Install-AloeVeraWSL'
+    'Install-Aloevera'
 ) -Alias @(
     'Aloe'
 )
