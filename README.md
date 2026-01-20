@@ -1,72 +1,134 @@
-# WinGet DSC Machine Provisioning
+# Install-Aloevera
 
 Automated Windows 11 workstation setup using WinGet DSC (Desired State Configuration).
 
 ## Features
 
+- **PowerShell Module**: Installable and reusable across machines
 - **Idempotent**: Run multiple times safely
 - **WSL-Centric**: Automated Ubuntu installation and configuration
-- **Non-Interactive**: No manual prompts during setup (except password)
+- **Non-Interactive**: No manual prompts during setup
+- **Modular**: Install only what you need (Apps, WSL, or both)
 - **Portable**: Git-tracked configuration for easy migration
-- **Multi-Stage**: Handles reboots and prerequisites gracefully
 
 ## Quick Start
 
 ### Prerequisites
 
-- Windows 11 (or Windows 10 with WSL support)
-- PowerShell 5.0 or later
+- Windows 11 (build 19041+) or Windows 10 with WSL support
+- **PowerShell 7.5+** (not Windows PowerShell 5.1)
+- **WinGet 1.4.0+**
 - Administrator privileges
 - Internet connection
+
+**Fresh machine?** Run [setup.ps1](setup.ps1) first to install PowerShell 7 and WinGet.
 
 ### Installation
 
 1. **Clone this repository:**
    ```powershell
-   git clone <your-repo-url> C:/projects/aloevera-setup
-   cd C:/projects/aloevera-setup
+   git clone <your-repo-url> C:\Users\ericz\projects\aloevera-setup
+   cd C:\Users\ericz\projects\aloevera-setup
    ```
 
-2. **Configure your setup:**
+2. **Install prerequisites (fresh machines only):**
+   ```powershell
+   # Run this in Windows PowerShell 5.1 (built-in)
+   .\setup.ps1
+   
+   # Then close and open PowerShell 7
+   ```
+
+3. **Import the module:**
+   ```powershell
+   # Run this in PowerShell 7+
+   Import-Module .\Install-Aloevera\Install-Aloevera.psd1 -Force
+   ```
+
+4. **Configure your setup:**
    
    Edit the following files according to your needs:
    
-   - `modules/vscode/extensions.txt` - Add your VS Code extensions (one per line)
-   - `modules/wsl/wsl.conf` - Configure your WSL settings
    - `.config/apps/*.winget` - Add/remove applications by category
-   - `.config/wsl-setup.winget` - Configure WSL and Ubuntu settings
+   - `.config/apps/blocklist.txt` - Categories to skip
+   - `.config/wsl-setup.winget` - WSL and Ubuntu settings
+   - `modules/vscode/extensions.txt` - VS Code extensions
+   - `modules/wsl/wsl.conf` - WSL configuration
 
-3. **Run the bootstrap script as Administrator:**
+5. **Run the setup:**
    ```powershell
-   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-   .\scripts\bootstrap.ps1
+   # Full setup (recommended for first time)
+   Aloe
+   
+   # Or be explicit
+   Install-Aloevera
+   
+   # Or install specific components
+   Install-Aloevera -Component Apps
+   Install-Aloevera -Component WSL
    ```
 
-4. **Reboot if prompted** and re-run the script if needed.
+6. **Reboot if prompted** and run again if needed.
+
+## Usage
+
+### Available Commands
+
+```powershell
+# Full setup
+Aloe                              # Short alias
+Install-Aloevera                  # Full command name
+
+# Component-specific
+Install-Aloevera -Component Apps
+Install-Aloevera -Component WSL
+
+# Get help
+Get-Help Install-Aloevera -Full
+```
+
+### Legacy Bootstrap Script
+
+The original bootstrap script is still available for backwards compatibility:
+
+```powershell
+.\scripts\bootstrap.ps1
+```
 
 ## Project Structure
 
 ```
-C:/projects/aloevera-setup/
+aloevera-setup/
+├── Install-Aloevera/             # PowerShell Module
+│   ├── Install-Aloevera.psd1     # Module manifest
+│   ├── Install-Aloevera.psm1     # Module loader
+│   ├── Public/                   # Exported functions
+│   │   ├── Install-Aloevera.ps1
+│   │   ├── Install-AloeVeraApps.ps1
+│   │   └── Install-AloeVeraWSL.ps1
+│   ├── Private/                  # Internal functions
+│   │   ├── Common.ps1            # Utility functions
+│   │   └── Test-Prerequisites.ps1
+│   └── README.md                 # Module documentation
 ├── .config/
 │   ├── apps/
-│   │   ├── development.winget    # Dev tools (VSCode, Git, Python, etc.)
-│   │   ├── communication.winget  # Chat/video apps (Discord, Zoom, etc.)
-│   │   ├── media.winget          # Media apps (VLC, Spotify, Steam)
-│   │   └── productivity.winget   # Productivity tools (Chrome, Obsidian, etc.)
+│   │   ├── development.winget    # Dev tools (VSCode, Git, Python)
+│   │   ├── communication.winget  # Chat/video (Discord, Zoom)
+│   │   ├── media.winget          # Media (VLC, Spotify, Steam)
+│   │   ├── productivity.winget   # Productivity (Chrome, Obsidian)
+│   │   └── blocklist.txt         # Categories to skip
 │   └── wsl-setup.winget          # WSL and Ubuntu configuration
-├── scripts/
-│   ├── bootstrap.ps1             # Main orchestrator (run this)
-│   ├── install-wsl.ps1           # WSL prerequisites installer
-│   └── setup-ubuntu.ps1          # Non-interactive Ubuntu setup
+├── scripts/                      # Legacy scripts (still functional)
+│   ├── bootstrap.ps1             # Original orchestrator
+│   ├── Common.ps1                # Shared utilities
+│   └── wsl/                      # WSL helper scripts
 ├── modules/
 │   ├── vscode/
-│   │   └── extensions.txt        # List of VS Code extensions
+│   │   └── extensions.txt        # VS Code extensions list
 │   └── wsl/
 │       └── wsl.conf              # WSL configuration template
-├── logs/                          # Execution logs
-├── .gitignore                     # Git exclusions
-└── README.md                      # This file
+├── logs/                         # Execution logs
+└── README.md                     # This file
 ```
 
 ## What Gets Installed

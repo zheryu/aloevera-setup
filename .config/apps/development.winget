@@ -4,6 +4,15 @@ properties:
   resources:
     # --- Development Tools ---
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: WinGet
+      directives:
+        description: Keep WinGet up to date
+      settings:
+        id: Microsoft.DesktopAppInstaller
+        source: winget
+        useLatest: true
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: PowerShell
       directives:
         description: Install PowerShell 7

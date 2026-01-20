@@ -52,8 +52,8 @@ try {
     }
     
     # Check PowerShell version
-    if ($PSVersionTable.PSVersion.Major -lt 5) {
-        throw "This script requires PowerShell 5.0 or later"
+    if ($PSVersionTable.PSVersion.Major -lt 7) {
+        throw "This script requires PowerShell 7.0 or later"
     }
     
     # Check internet connectivity
