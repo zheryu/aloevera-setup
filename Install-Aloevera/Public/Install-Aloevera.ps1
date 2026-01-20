@@ -68,6 +68,10 @@ function Install-Aloevera {
     try {
         Write-InfoBanner "Aloevera Setup - Windows Workstation Provisioning"
 
+        # Initialize configuration directory
+        Write-Host ""
+        Initialize-AloeveraConfig | Out-Null
+
         # Validate prerequisites unless skipped
         if (-not $SkipPrerequisites) {
             Write-Host "`n[Prerequisite Check]" -ForegroundColor Yellow

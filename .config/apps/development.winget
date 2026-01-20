@@ -3,14 +3,8 @@ properties:
   configurationVersion: 0.2.0
   resources:
     # --- Development Tools ---
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: WinGet
-      directives:
-        description: Keep WinGet up to date
-      settings:
-        id: Microsoft.DesktopAppInstaller
-        source: winget
-        useLatest: true
+    # Note: WinGet (Microsoft.DesktopAppInstaller) is updated separately in Install-AloeveraApps.ps1
+    # It cannot update itself while running a configuration.
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: PowerShell
