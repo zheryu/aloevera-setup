@@ -4,7 +4,7 @@ function Install-AloeveraApps {
         Installs applications using WinGet configuration files.
 
     .DESCRIPTION
-        Applies all application configurations from .config/apps directory.
+        Applies all application configurations from ~/.aloe/apps directory.
         Supports category-based blocking via blocklist.txt.
 
     .PARAMETER SkipPrompt
@@ -24,14 +24,29 @@ function Install-AloeveraApps {
     
     Write-InfoBanner "Application Installation"
 
-    # Determine module base directory and config location
-    $ModuleBase = Split-Path -Parent $PSScriptRoot
-    $AppsDir = Join-Path -Path $ModuleBase -ChildPath ".config\apps"
+    # Update WinGet first (out-of-band)
+    # Note: WinGet cannot update itself while running a configuration, so we handle it separately
+    Write-Host "Checking for WinGet updates..." -NoNewline
+    try {
+        $updateResult = winget upgrade --id Microsoft.DesktopAppInstaller --silent --accept-source-agreements --accept-package-agreements 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host " [OK] Updated" -ForegroundColor Green
+        } elseif ($LASTEXITCODE -eq -1978286075) {
+            # 0x8A15002D = UPDATE_NOT_APPLICABLE (already latest version)
+            Write-Host " [OK] Already up to date" -ForegroundColor Green
+        } else {
+            Write-Host " [WARN] Update check failed (non-critical)" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host " [WARN] Update check failed (non-critical)" -ForegroundColor Yellow
+    }
+    Write-Host ""
+
+    # Use user's config directory
+    $AppsDir = Join-Path -Path $env:USERPROFILE -ChildPath ".aloe\apps"
 
     if (-not (Test-Path $AppsDir)) {
-        Write-Warning "Apps directory not found: $AppsDir"
-        Write-Host "Please create .config/apps directory with .winget configuration files."
-        return
+        throw "Apps directory not found: $AppsDir`nPlease ensure configuration is initialized by running Install-Aloevera."
     }
 
     # Discover all .winget files in the apps directory

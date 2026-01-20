@@ -23,9 +23,9 @@ function Install-AloeveraWSL {
     
     Write-InfoBanner "WSL Setup"
     
-    # Determine module base directory
+    # Determine paths
     $ModuleBase = Split-Path -Parent $PSScriptRoot
-    $ConfigDir = Join-Path -Path $ModuleBase -ChildPath ".config"
+    $ConfigDir = Join-Path -Path $env:USERPROFILE -ChildPath ".aloe"
     $ScriptsDir = Join-Path -Path $ModuleBase -ChildPath "scripts"
 
     Write-Host "This will:" -ForegroundColor Yellow
@@ -106,7 +106,7 @@ function Install-AloeveraWSL {
     $ConfigPath = Join-Path -Path $ConfigDir -ChildPath "wsl-setup.winget"
     
     if (-not (Test-Path $ConfigPath)) {
-        throw "WSL configuration file not found: $ConfigPath`nPlease ensure .config/wsl-setup.winget exists before running WSL setup."
+        throw "WSL configuration file not found: $ConfigPath`nPlease ensure ~/.aloe/wsl-setup.winget exists. Run Install-Aloevera to initialize configuration."
     }
     
     winget configure --file $ConfigPath --accept-configuration-agreements --disable-interactivity

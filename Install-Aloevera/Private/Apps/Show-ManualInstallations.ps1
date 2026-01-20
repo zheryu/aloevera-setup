@@ -9,7 +9,7 @@ function Show-ManualInstallations {
         Shows applications that cannot be installed via automated provisioning,
         along with download URLs and reasons why automation isn't possible.
         
-        Reads from .config/apps/uninstallable.txt file.
+        Reads from ~/.aloe/apps/uninstallable.txt file.
 
     .EXAMPLE
         Show-ManualInstallations
@@ -18,8 +18,7 @@ function Show-ManualInstallations {
     [CmdletBinding()]
     param()
 
-    $ModuleBase = Split-Path -Parent $PSScriptRoot
-    $UninstallableFile = Join-Path -Path $ModuleBase -ChildPath ".config\apps\uninstallable.txt"
+    $UninstallableFile = Join-Path -Path $env:USERPROFILE -ChildPath ".aloe\apps\uninstallable.txt"
 
     if (-not (Test-Path $UninstallableFile)) {
         # No file means no manual installations needed - silent success
