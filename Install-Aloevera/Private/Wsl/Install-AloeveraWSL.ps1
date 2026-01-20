@@ -24,9 +24,7 @@ function Install-AloeveraWSL {
     Write-InfoBanner "WSL Setup"
     
     # Determine paths
-    $ModuleBase = Split-Path -Parent $PSScriptRoot
     $ConfigDir = Join-Path -Path $env:USERPROFILE -ChildPath ".aloe"
-    $ScriptsDir = Join-Path -Path $ModuleBase -ChildPath "scripts"
 
     Write-Host "This will:" -ForegroundColor Yellow
     Write-Host "  1. Install/verify WSL prerequisites"
@@ -131,34 +129,28 @@ function Install-AloeveraWSL {
 
     # Step 4: Configure wsl.conf
     Write-Host "`n[4/5] Configuring WSL settings..." -ForegroundColor Green
-    $WslConfigScript = Join-Path -Path $ScriptsDir -ChildPath "wsl\wslconfig.ps1"
-    
-    if (Test-Path $WslConfigScript) {
-        & $WslConfigScript
-        
-        if ($LASTEXITCODE -eq 0) {
+    try {
+        $configResult = Set-WslConfig -DistributionName "Ubuntu"
+        if ($configResult -eq 0) {
             Write-Host "[OK] WSL settings configured" -ForegroundColor Green
         } else {
             Write-Warning "WSL config completed with warnings"
         }
-    } else {
-        Write-Warning "WSL config script not found: $WslConfigScript"
+    } catch {
+        Write-Warning "WSL config failed: $_"
     }
 
     # Step 5: Configure fstab
     Write-Host "`n[5/5] Configuring fstab..." -ForegroundColor Green
-    $FstabScript = Join-Path -Path $ScriptsDir -ChildPath "wsl\wslfstab.ps1"
-    
-    if (Test-Path $FstabScript) {
-        & $FstabScript
-        
-        if ($LASTEXITCODE -eq 0) {
+    try {
+        $fstabResult = Set-WslFstab -DistributionName "Ubuntu"
+        if ($fstabResult -eq 0) {
             Write-Host "[OK] fstab configured" -ForegroundColor Green
         } else {
             Write-Warning "fstab configuration completed with warnings"
         }
-    } else {
-        Write-Warning "fstab script not found: $FstabScript"
+    } catch {
+        Write-Warning "fstab configuration failed: $_"
     }
 
     # Summary

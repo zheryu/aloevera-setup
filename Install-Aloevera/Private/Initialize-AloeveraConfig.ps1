@@ -77,6 +77,20 @@ function Initialize-AloeveraConfig {
         }
     }
 
+    # Copy wsl.conf
+    $WslConfSource = Join-Path -Path $TemplateDir -ChildPath "wsl.conf"
+    $WslConfDest = Join-Path -Path $ConfigDir -ChildPath "wsl.conf"
+
+    if (Test-Path $WslConfSource) {
+        if (-not (Test-Path $WslConfDest)) {
+            Copy-Item -Path $WslConfSource -Destination $WslConfDest -Force
+            Write-Host "  [+] wsl.conf" -ForegroundColor Cyan
+            $copied++
+        } else {
+            $skipped++
+        }
+    }
+
     # Create README if it doesn't exist
     $ReadmePath = Join-Path -Path $ConfigDir -ChildPath "README.md"
     if (-not (Test-Path $ReadmePath)) {
@@ -93,6 +107,7 @@ This directory contains your personal Aloevera setup configuration.
   - uninstallable.txt: Apps that require manual installation
 
 - **wsl-setup.winget**: WSL and Ubuntu installation configuration
+- **wsl.conf**: WSL configuration template (copied to /etc/wsl.conf in Ubuntu)
 
 ## Customization
 
@@ -100,6 +115,7 @@ Edit these files to customize your setup:
 1. Add/remove apps from *.winget files
 2. Add categories to blocklist.txt to skip them
 3. Modify wsl-setup.winget for custom WSL settings
+4. Edit wsl.conf to customize WSL behavior (automount, systemd, etc.)
 
 ## Reset
 
