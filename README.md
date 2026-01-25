@@ -1,13 +1,11 @@
-# Install-Aloevera
-
-Automated Windows 11 workstation setup using WinGet DSC (Desired State Configuration).
+# Aloevera Setup
+Automated Windows 11 workstation setup using WinGet DSC (Desired State Configuration) for my personal machine.
 
 ## Features
 
 - **PowerShell Module**: Installable and reusable across machines
 - **Idempotent**: Run multiple times safely
 - **WSL-Centric**: Automated Ubuntu installation and configuration
-- **Non-Interactive**: No manual prompts during setup
 - **Modular**: Install only what you need (Apps, WSL, or both)
 - **Portable**: Git-tracked configuration for easy migration
 
@@ -45,17 +43,7 @@ Automated Windows 11 workstation setup using WinGet DSC (Desired State Configura
    Import-Module .\Install-Aloevera\Install-Aloevera.psd1 -Force
    ```
 
-4. **Configure your setup:**
-   
-   Edit the following files according to your needs:
-   
-   - `.config/apps/*.winget` - Add/remove applications by category
-   - `.config/apps/blocklist.txt` - Categories to skip
-   - `.config/wsl-setup.winget` - WSL and Ubuntu settings
-   - `modules/vscode/extensions.txt` - VS Code extensions
-   - `modules/wsl/wsl.conf` - WSL configuration
-
-5. **Run the setup:**
+4. **Run the setup:**
    ```powershell
    # Full setup (recommended for first time)
    Aloe
@@ -68,7 +56,17 @@ Automated Windows 11 workstation setup using WinGet DSC (Desired State Configura
    Install-Aloevera -Component WSL
    ```
 
+5. **Customize configuration (optional):**
+   
+   After first run, edit files in `~/.aloe/` to customize:
+   - `apps/*.winget` - Add/remove applications
+   - `blocklist.txt` - Skip categories
+   - `wsl-setup.winget` - WSL settings
+   - `wsl.conf` - WSL configuration
+
 6. **Reboot if prompted** and run again if needed.
+
+> **Note:** Configuration files are automatically initialized to `~/.aloe/` on first run. Edit them there, not in the `.config/` directory (which contains templates only).
 
 ## Usage
 
@@ -87,14 +85,6 @@ Install-Aloevera -Component WSL
 Get-Help Install-Aloevera -Full
 ```
 
-### Legacy Bootstrap Script
-
-The original bootstrap script is still available for backwards compatibility:
-
-```powershell
-.\scripts\bootstrap.ps1
-```
-
 ## Project Structure
 
 ```
@@ -103,32 +93,47 @@ aloevera-setup/
 │   ├── Install-Aloevera.psd1     # Module manifest
 │   ├── Install-Aloevera.psm1     # Module loader
 │   ├── Public/                   # Exported functions
-│   │   ├── Install-Aloevera.ps1
-│   │   ├── Install-AloeVeraApps.ps1
-│   │   └── Install-AloeVeraWSL.ps1
+│   │   └── Install-Aloevera.ps1  # Main entry point
 │   ├── Private/                  # Internal functions
+│   │   ├── Apps/                 # Application installation
+│   │   │   ├── Install-AloeveraApps.ps1
+│   │   │   └── Show-ManualInstallations.ps1
+│   │   ├── Wsl/                  # WSL setup
+│   │   │   ├── Install-AloeveraWSL.ps1
+│   │   │   ├── Initialize-UbuntuUser.ps1
+│   │   │   ├── Set-WslConfig.ps1
+│   │   │   └── Set-WslFstab.ps1
 │   │   ├── Common.ps1            # Utility functions
+│   │   ├── Initialize-AloeveraConfig.ps1
 │   │   └── Test-Prerequisites.ps1
 │   └── README.md                 # Module documentation
-├── .config/
+├── .config/                      # Configuration templates
 │   ├── apps/
 │   │   ├── development.winget    # Dev tools (VSCode, Git, Python)
 │   │   ├── communication.winget  # Chat/video (Discord, Zoom)
-│   │   ├── media.winget          # Media (VLC, Spotify, Steam)
+│   │   ├── media.winget          # Media (VLC, Steam)
 │   │   ├── productivity.winget   # Productivity (Chrome, Obsidian)
-│   │   └── blocklist.txt         # Categories to skip
-│   └── wsl-setup.winget          # WSL and Ubuntu configuration
-├── scripts/                      # Legacy scripts (still functional)
-│   ├── bootstrap.ps1             # Original orchestrator
-│   ├── Common.ps1                # Shared utilities
-│   └── wsl/                      # WSL helper scripts
+│   │   ├── blocklist.txt         # Categories to skip
+│   │   └── uninstallable.txt     # Apps requiring manual install
+│   ├── wsl-setup.winget          # WSL and Ubuntu installation
+│   └── wsl.conf                  # WSL configuration template
 ├── modules/
-│   ├── vscode/
-│   │   └── extensions.txt        # VS Code extensions list
-│   └── wsl/
-│       └── wsl.conf              # WSL configuration template
+│   └── vscode/
+│       └── extensions.txt        # VS Code extensions list
 ├── logs/                         # Execution logs
+├── setup.ps1                     # Bootstrap (installs PS7 + WinGet)
+├── Test-Module.ps1               # Module verification script
 └── README.md                     # This file
+
+User Configuration Directory (~/.aloe):
+~/.aloe/
+├── apps/                         # User's app configurations
+│   ├── *.winget                  # Copied from .config/apps/
+│   ├── blocklist.txt
+│   └── uninstallable.txt
+├── wsl-setup.winget              # User's WSL config
+├── wsl.conf                      # User's WSL settings
+└── README.md                     # Configuration guide
 ```
 
 ## What Gets Installed
@@ -163,15 +168,15 @@ aloevera-setup/
 - Fstab drive mounting
 
 ### Configurations
-- WSL with custom settings (from `modules/wsl/wsl.conf`)
+- WSL with custom settings (from `~/.aloe/wsl.conf`)
 - VS Code extensions inside WSL (from `modules/vscode/extensions.txt`)
-- Git global configuration (username and email)
+- Fstab configured for built-in drives only
 
 ## Customization
 
 ### Adding Applications
 
-Edit the appropriate category file in `.config/apps/` and add a new resource:
+Edit the appropriate category file in `~/.aloe/apps/` and add a new resource:
 
 ```yaml
 - resource: Microsoft.WinGet.DSC/WinGetPackage
@@ -181,6 +186,7 @@ Edit the appropriate category file in `.config/apps/` and add a new resource:
   settings:
     id: Publisher.AppName
     source: winget
+    useLatest: true
 ```
 
 Find package IDs using: `winget search "app name"`
@@ -193,14 +199,14 @@ Find package IDs using: `winget search "app name"`
 
 ### Installing Specific Categories
 
-You can run individual category configurations:
+Use the module's component system:
 
 ```powershell
-# Install only development tools
-winget configure -f .config/apps/development.winget --accept-configuration-agreements
+# Install only applications
+Install-Aloevera -Component Apps
 
-# Install only media apps
-winget configure -f .config/apps/media.winget --accept-configuration-agreements
+# Install only WSL
+Install-Aloevera -Component WSL
 ```
 
 ### Adding VS Code Extensions
@@ -217,18 +223,15 @@ Find extension IDs at https://marketplace.visualstudio.com/vscode or use `code -
 
 ### Configuring WSL
 
-Edit `modules/wsl/wsl.conf` with your desired WSL settings. Documentation: https://learn.microsoft.com/en-us/windows/wsl/wsl-config
+Edit `~/.aloe/wsl.conf` with your desired WSL settings before running setup. Documentation: https://learn.microsoft.com/en-us/windows/wsl/wsl-config
+
+Changes take effect after running `wsl --shutdown` and restarting WSL.
 
 ## Manual Installations
 
-Some applications cannot be installed via automated provisioning and require manual installation. After running [bootstrap.ps1](scripts/bootstrap.ps1), the script will display a list of these applications with download URLs.
+Some applications cannot be installed via automated provisioning and require manual installation. After running `Install-Aloevera`, the module will display a list of these applications with download URLs.
 
-You can also view this list anytime by running:
-```powershell
-.\scripts\show-manual-installs.ps1
-```
-
-The list is maintained in [.config/apps/uninstallable.txt](.config/apps/uninstallable.txt). To add an app to this list:
+The list is maintained in `~/.aloe/apps/uninstallable.txt`. To add an app to this list:
 
 ```
 AppName | https://download-url.com | Reason why automation isn't possible
@@ -245,10 +248,10 @@ All execution logs are saved in the `logs/` directory with timestamps.
 - Reset if needed: `wsl --unregister Ubuntu` (warning: deletes all data)
 
 ### Permission Issues
-Always run `bootstrap.ps1` as Administrator.
+Always run PowerShell as Administrator when using `Install-Aloevera`.
 
 ### Re-running After Failure
-The scripts are designed to be idempotent. Simply re-run `bootstrap.ps1` after fixing any issues.
+The module is designed to be idempotent. Simply re-run `Install-Aloevera` after fixing any issues.
 
 ## Development Workflow
 
@@ -256,24 +259,28 @@ The scripts are designed to be idempotent. Simply re-run `bootstrap.ps1` after f
 Test your configuration without actually applying it:
 ```powershell
 # Test a specific category
-winget configure test -f .config/apps/development.winget
+winget configure test -f ~/.aloe/apps/development.winget
 
 # Test WSL setup
-winget configure test -f .config/wsl-setup.winget
+winget configure test -f ~/.aloe/wsl-setup.winget
+```
+
+### Testing the Module
+Run the module verification script:
+```powershell
+.\Test-Module.ps1
 ```
 
 ### Validating YAML
 Use the YAML schema validation in VS Code or online YAML validators.
 
-### Adding New Scripts
-Create new PowerShell scripts in the `scripts/` directory and call them from `bootstrap.ps1`.
-
 ## Known Limitations
 
-- Password must be entered interactively during Ubuntu setup (security requirement)
-- WSL distribution name may vary (`Ubuntu` vs `Ubuntu-22.04`) - check with `wsl --list`
+- Ubuntu user account is created non-interactively with prompted credentials
+- WSL distribution name must be `Ubuntu` (default)
 - First-time VS Code server initialization in WSL may take a few minutes
 - Some Windows features may require a reboot to complete installation
+- WinGet cannot update itself while running - handled separately by module
 
 ## Contributing
 
