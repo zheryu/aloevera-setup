@@ -25,6 +25,15 @@ properties:
         useLatest: true
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: SublimeText4
+      directives:
+        description: Install Sublime Text 4
+      settings:
+        id: SublimeHQ.SublimeText.4
+        source: winget
+        useLatest: true
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Git
       directives:
         description: Install Git for Windows

@@ -13,6 +13,15 @@ properties:
         useLatest: true
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: BraveBrowser
+      directives:
+        description: Install Brave Browser
+      settings:
+        id: Brave.Brave
+        source: winget
+        useLatest: true
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Obsidian
       directives:
         description: Install Obsidian
@@ -27,5 +36,14 @@ properties:
         description: Install WinRAR
       settings:
         id: RARLab.WinRAR
+        source: winget
+        useLatest: true
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: qBittorrent
+      directives:
+        description: Install qBittorrent
+      settings:
+        id: qBittorrent.qBittorrent
         source: winget
         useLatest: true
